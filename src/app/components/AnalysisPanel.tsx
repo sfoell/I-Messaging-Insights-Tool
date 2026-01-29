@@ -324,12 +324,7 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone, messages }: Analys
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-xl min-w-[var(--radix-select-trigger-width)]">
                     <SelectItem value="low-stakes-formal" className="text-white focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
-                      <span className="flex items-center gap-2">
-                        Professional Communicator
-                        <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-blue-500/30 text-blue-400 shrink-0 [&_svg]:!text-blue-400" title="AI suggested">
-                          <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
-                        </span>
-                      </span>
+                      Professional Communicator
                     </SelectItem>
                     <SelectItem value="low-stakes-informal" className="text-white focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       Friendly Colleague
@@ -405,7 +400,7 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone, messages }: Analys
                           }
                         }}
                         autoFocus
-                        className="flex-1 min-w-0 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-violet-400/50"
+                        className="flex-1 min-w-0 bg-white/10 border border-white/20 rounded-lg px-2 py-1 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                       />
                     ) : (
                       <>
