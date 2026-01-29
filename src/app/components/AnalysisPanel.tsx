@@ -3,6 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { useState } from "react";
 import type { ChatMessage } from "@/app/App";
+import replywiseLogo from "@/assets/replywise-logo.png";
 
 type InteractionType = "low-stakes-formal" | "low-stakes-informal" | "high-stakes-formal" | "high-stakes-informal";
 
@@ -27,7 +28,6 @@ interface AnalysisPanelProps {
   onClose: () => void;
   onApplyTone: (message: string, options?: { replaceSelection: { start: number; end: number } }) => void;
   selection?: { start: number; end: number };
-  inputValue?: string;
   messages: ChatMessage[];
 }
 
@@ -152,7 +152,7 @@ const interactionConfigs = {
 
 type SidebarSection = "setup" | "insights" | "recommendations";
 
-export function AnalysisPanel({ isOpen, onClose, onApplyTone, selection, inputValue, messages }: AnalysisPanelProps) {
+export function AnalysisPanel({ isOpen, onClose, onApplyTone, selection, messages }: AnalysisPanelProps) {
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionType>("low-stakes-formal");
   const [selectedRole, setSelectedRole] = useState<InteractionType>("low-stakes-formal");
   const [activeSection, setActiveSection] = useState<SidebarSection>("setup");
@@ -182,9 +182,7 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone, selection, inputVa
     }
   };
 
-  const handleApplyRecommendedTone = () => {
-    const hasText = (inputValue ?? "").trim().length > 0;
-    if (!hasText) return;
+  const handleAdjustMessage = () => {
     onApplyTone(config.message, { replaceSelection: selection ?? { start: 0, end: 0 } });
   };
 
@@ -193,9 +191,18 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone, selection, inputVa
       {/* Header: dark glass with soft liquid glow */}
       <div className="relative px-6 py-5 flex items-center justify-between border-b border-white/[0.08] bg-gradient-to-r from-white/[0.06] via-white/[0.04] to-transparent backdrop-blur-xl overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.06] via-transparent to-cyan-500/[0.04] pointer-events-none" />
-        <div className="relative">
-          <h2 className="font-semibold text-lg text-white tracking-tight">Replywise</h2>
-          <p className="text-sm text-zinc-400 mt-0.5">{displayRole}</p>
+        <div className="relative flex items-center gap-3">
+          <div className="flex-shrink-0 w-9 h-9 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-white/20 bg-transparent" aria-hidden>
+            <img
+              src={replywiseLogo}
+              alt="Replywise"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div>
+            <h2 className="font-extrabold text-lg text-white tracking-tight">Replywise</h2>
+            <p className="text-sm text-zinc-400 mt-0.5">{displayRole}</p>
+          </div>
         </div>
         <button
           onClick={onClose}
@@ -608,13 +615,13 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone, selection, inputVa
                 ))}
               </div>
 
-              {/* Apply — liquid glow button */}
+              {/* Adjust Message — liquid glow button */}
               <button
-                onClick={handleApplyRecommendedTone}
+                onClick={handleAdjustMessage}
                 className="w-full mt-5 px-5 py-4 rounded-2xl font-semibold flex items-center justify-center gap-2.5 transition-all duration-300 active:scale-[0.98] bg-white text-zinc-900 border border-white/80 shadow-lg hover:bg-zinc-100 hover:border-white"
               >
                 <Wand2 className="w-5 h-5" />
-                Apply Recommended Tones
+                Adjust Message
               </button>
             </div>
             </div>

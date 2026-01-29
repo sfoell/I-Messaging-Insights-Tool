@@ -39,8 +39,6 @@ export default function App() {
   const handleApplyTone = useCallback(
     (message: string, options?: { replaceSelection: InputSelection }) => {
       const hasText = inputValue.trim().length > 0;
-      if (!hasText) return;
-
       const fromOptions = options?.replaceSelection && options.replaceSelection.end > options.replaceSelection.start;
       const fromRef = lastNonEmptySelectionRef.current.end > lastNonEmptySelectionRef.current.start;
       const replaceSelection = fromOptions
@@ -49,14 +47,18 @@ export default function App() {
           ? lastNonEmptySelectionRef.current
           : null;
 
-      if (!replaceSelection) return;
-
-      const { start, end } = replaceSelection;
-      const before = inputValue.slice(0, start);
-      const after = inputValue.slice(end);
-      const newText = before + message + after;
-      setInputValue(newText);
-      setCursorAfterApply(start + message.length);
+      if (replaceSelection && hasText) {
+        const { start, end } = replaceSelection;
+        const before = inputValue.slice(0, start);
+        const after = inputValue.slice(end);
+        const newText = before + message + after;
+        setInputValue(newText);
+        setCursorAfterApply(start + message.length);
+        lastNonEmptySelectionRef.current = { start: 0, end: 0 };
+      } else {
+        setInputValue(message);
+        setCursorAfterApply(null);
+      }
     },
     [inputValue]
   );
@@ -93,7 +95,6 @@ export default function App() {
         onClose={() => setIsPanelOpen(false)} 
         onApplyTone={handleApplyTone}
         selection={selection}
-        inputValue={inputValue}
         messages={messages}
       />
     </div>
