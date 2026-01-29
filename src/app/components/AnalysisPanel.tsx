@@ -1,8 +1,11 @@
-import { X, TrendingUp, Lightbulb, Wand2, Target, AlertTriangle, Pencil, ArrowUp, Minus, ArrowDown, Inbox, Send, Users } from "lucide-react";
+import { X, TrendingUp, Lightbulb, Wand2, Target, AlertTriangle, Pencil, ArrowUp, Minus, ArrowDown, Inbox, Send, Users, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { useState } from "react";
 
 type InteractionType = "low-stakes-formal" | "low-stakes-informal" | "high-stakes-formal" | "high-stakes-informal";
+
+/** Interaction type that AI analysis suggests (e.g. from "72% confidence"). */
+const AI_SUGGESTED_INTERACTION: InteractionType = "low-stakes-formal";
 
 interface AnalysisPanelProps {
   isOpen: boolean;
@@ -248,7 +251,14 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelPro
                       : "bg-white/[0.04] border-white/[0.08] text-zinc-300 hover:bg-white/[0.07] hover:border-white/15"
                   }`}
                 >
-                  <div className="text-xs font-semibold">Low-stakes</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-semibold">Low-stakes</span>
+                    {AI_SUGGESTED_INTERACTION === "low-stakes-formal" && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/30 text-blue-400" title="AI suggested">
+                        <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-zinc-400 mt-0.5">Formal</div>
                 </button>
 
@@ -298,7 +308,12 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelPro
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-xl min-w-[var(--radix-select-trigger-width)]">
                     <SelectItem value="low-stakes-formal" className="text-white focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
-                      Professional Communicator
+                      <span className="flex items-center gap-2">
+                        Professional Communicator
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/30 text-blue-400 shrink-0 [&_svg]:!text-blue-400" title="AI suggested">
+                          <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        </span>
+                      </span>
                     </SelectItem>
                     <SelectItem value="low-stakes-informal" className="text-white focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       Friendly Colleague
