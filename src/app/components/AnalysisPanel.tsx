@@ -1,16 +1,32 @@
-import { X, TrendingUp, Lightbulb, Wand2, Target, AlertTriangle, Pencil, ArrowUp, Minus, ArrowDown, Inbox, Send, Users, Sparkles } from "lucide-react";
+import { X, TrendingUp, Lightbulb, Wand2, Target, AlertTriangle, Pencil, ArrowUp, Minus, ArrowDown, Inbox, Send, Users, Sparkles, ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { useState } from "react";
+import type { ChatMessage } from "@/app/App";
 
 type InteractionType = "low-stakes-formal" | "low-stakes-informal" | "high-stakes-formal" | "high-stakes-informal";
 
 /** Interaction type that AI analysis suggests (e.g. from "72% confidence"). */
 const AI_SUGGESTED_INTERACTION: InteractionType = "low-stakes-formal";
 
+/** Tone label → message ids that exemplify that tone (from chat). */
+const recipientToneExampleIds: Record<string, number[]> = {
+  "Polite & Courteous": [1],
+  "Appreciative": [5],
+  "Professional": [3],
+};
+
+const yourToneExampleIds: Record<string, number[]> = {
+  "Casual": [2],
+  "Brief": [4, 6],
+  "Somewhat Dismissive": [2, 4],
+};
+
 interface AnalysisPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onApplyTone: (message: string) => void;
+  messages: ChatMessage[];
 }
 
 const interactionConfigs = {
@@ -134,7 +150,7 @@ const interactionConfigs = {
 
 type SidebarSection = "setup" | "insights" | "recommendations";
 
-export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelProps) {
+export function AnalysisPanel({ isOpen, onClose, onApplyTone, messages }: AnalysisPanelProps) {
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionType>("low-stakes-formal");
   const [selectedRole, setSelectedRole] = useState<InteractionType>("low-stakes-formal");
   const [activeSection, setActiveSection] = useState<SidebarSection>("setup");
@@ -254,7 +270,7 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelPro
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-semibold">Low-stakes</span>
                     {AI_SUGGESTED_INTERACTION === "low-stakes-formal" && (
-                      <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/30 text-blue-400" title="AI suggested">
+                      <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-blue-500/30 text-blue-400" title="AI suggested">
                         <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
                       </span>
                     )}
@@ -310,7 +326,7 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelPro
                     <SelectItem value="low-stakes-formal" className="text-white focus:bg-white/10 focus:text-white rounded-lg cursor-pointer">
                       <span className="flex items-center gap-2">
                         Professional Communicator
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/30 text-blue-400 shrink-0 [&_svg]:!text-blue-400" title="AI suggested">
+                        <span className="inline-flex items-center justify-center p-1.5 rounded-full bg-blue-500/30 text-blue-400 shrink-0 [&_svg]:!text-blue-400" title="AI suggested">
                           <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </span>
                       </span>
@@ -448,17 +464,54 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelPro
                   { label: "Polite & Courteous", level: "High", glow: "blue" },
                   { label: "Appreciative", level: "High", glow: "emerald" },
                   { label: "Professional", level: "High", glow: "violet" }
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.06] transition-all duration-200">
-                    <span className="text-sm font-medium text-zinc-200">{item.label}</span>
-                    <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.1] text-zinc-200 border border-white/[0.08] inline-flex items-center gap-1.5">
-                      {item.level === "High" && <ArrowUp className="w-3.5 h-3.5 shrink-0" />}
-                      {item.level === "Med" && <Minus className="w-3.5 h-3.5 shrink-0" />}
-                      {item.level === "Low" && <ArrowDown className="w-3.5 h-3.5 shrink-0" />}
-                      {item.level}
-                    </span>
-                  </div>
-                ))}
+                ].map((item) => {
+                  const exampleIds = recipientToneExampleIds[item.label] ?? [];
+                  const exampleMessages = exampleIds.map((id) => messages.find((m) => m.id === id)).filter(Boolean) as ChatMessage[];
+                  return (
+                    <Collapsible key={item.label} className="group">
+                      <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.06] transition-all duration-200 overflow-hidden">
+                        {exampleMessages.length > 0 ? (
+                          <CollapsibleTrigger asChild>
+                            <div className="flex items-center justify-between p-3 cursor-pointer text-left w-full" title="Examples from chat">
+                              <span className="text-sm font-medium text-zinc-200">{item.label}</span>
+                              <span className="flex items-center gap-2">
+                                <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.1] text-zinc-200 border border-white/[0.08] inline-flex items-center gap-1.5">
+                                  {item.level === "High" && <ArrowUp className="w-3.5 h-3.5 shrink-0" />}
+                                  {item.level === "Med" && <Minus className="w-3.5 h-3.5 shrink-0" />}
+                                  {item.level === "Low" && <ArrowDown className="w-3.5 h-3.5 shrink-0" />}
+                                  {item.level}
+                                </span>
+                                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                              </span>
+                            </div>
+                          </CollapsibleTrigger>
+                        ) : (
+                          <div className="flex items-center justify-between p-3">
+                            <span className="text-sm font-medium text-zinc-200">{item.label}</span>
+                            <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.1] text-zinc-200 border border-white/[0.08] inline-flex items-center gap-1.5">
+                              {item.level === "High" && <ArrowUp className="w-3.5 h-3.5 shrink-0" />}
+                              {item.level === "Med" && <Minus className="w-3.5 h-3.5 shrink-0" />}
+                              {item.level === "Low" && <ArrowDown className="w-3.5 h-3.5 shrink-0" />}
+                              {item.level}
+                            </span>
+                          </div>
+                        )}
+                        {exampleMessages.length > 0 && (
+                          <CollapsibleContent>
+                            <div className="px-3 pb-3 pt-0 space-y-2 border-t border-white/[0.06] mt-0 pt-2">
+                              {exampleMessages.map((msg) => (
+                                <div key={msg.id} className="text-xs text-zinc-400 bg-white/[0.04] rounded-lg px-2.5 py-2 border border-white/[0.06]">
+                                  &ldquo;{msg.text}&rdquo;
+                                  <span className="block text-[10px] text-zinc-500 mt-1">{msg.timestamp}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        )}
+                      </div>
+                    </Collapsible>
+                  );
+                })}
               </div>
             </div>
 
@@ -475,17 +528,54 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone }: AnalysisPanelPro
                   { label: "Casual", level: "High" },
                   { label: "Brief", level: "High" },
                   { label: "Somewhat Dismissive", level: "Med" }
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.06] transition-all duration-200">
-                    <span className="text-sm font-medium text-zinc-200">{item.label}</span>
-                    <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.1] text-zinc-200 border border-white/[0.08] inline-flex items-center gap-1.5">
-                      {item.level === "High" && <ArrowUp className="w-3.5 h-3.5 shrink-0" />}
-                      {item.level === "Med" && <Minus className="w-3.5 h-3.5 shrink-0" />}
-                      {item.level === "Low" && <ArrowDown className="w-3.5 h-3.5 shrink-0" />}
-                      {item.level}
-                    </span>
-                  </div>
-                ))}
+                ].map((item) => {
+                  const exampleIds = yourToneExampleIds[item.label] ?? [];
+                  const exampleMessages = exampleIds.map((id) => messages.find((m) => m.id === id)).filter(Boolean) as ChatMessage[];
+                  return (
+                    <Collapsible key={item.label} className="group">
+                      <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] hover:bg-white/[0.06] transition-all duration-200 overflow-hidden">
+                        {exampleMessages.length > 0 ? (
+                          <CollapsibleTrigger asChild>
+                            <div className="flex items-center justify-between p-3 cursor-pointer text-left w-full" title="Examples from chat">
+                              <span className="text-sm font-medium text-zinc-200">{item.label}</span>
+                              <span className="flex items-center gap-2">
+                                <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.1] text-zinc-200 border border-white/[0.08] inline-flex items-center gap-1.5">
+                                  {item.level === "High" && <ArrowUp className="w-3.5 h-3.5 shrink-0" />}
+                                  {item.level === "Med" && <Minus className="w-3.5 h-3.5 shrink-0" />}
+                                  {item.level === "Low" && <ArrowDown className="w-3.5 h-3.5 shrink-0" />}
+                                  {item.level}
+                                </span>
+                                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                              </span>
+                            </div>
+                          </CollapsibleTrigger>
+                        ) : (
+                          <div className="flex items-center justify-between p-3">
+                            <span className="text-sm font-medium text-zinc-200">{item.label}</span>
+                            <span className="px-2.5 py-1 text-xs font-medium rounded-lg bg-white/[0.1] text-zinc-200 border border-white/[0.08] inline-flex items-center gap-1.5">
+                              {item.level === "High" && <ArrowUp className="w-3.5 h-3.5 shrink-0" />}
+                              {item.level === "Med" && <Minus className="w-3.5 h-3.5 shrink-0" />}
+                              {item.level === "Low" && <ArrowDown className="w-3.5 h-3.5 shrink-0" />}
+                              {item.level}
+                            </span>
+                          </div>
+                        )}
+                        {exampleMessages.length > 0 && (
+                          <CollapsibleContent>
+                            <div className="px-3 pb-3 pt-0 space-y-2 border-t border-white/[0.06] mt-0 pt-2">
+                              {exampleMessages.map((msg) => (
+                                <div key={msg.id} className="text-xs text-zinc-400 bg-white/[0.04] rounded-lg px-2.5 py-2 border border-white/[0.06]">
+                                  &ldquo;{msg.text}&rdquo;
+                                  <span className="block text-[10px] text-zinc-500 mt-1">{msg.timestamp}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        )}
+                      </div>
+                    </Collapsible>
+                  );
+                })}
               </div>
               <p className="text-sm text-amber-200/90 mt-5 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 border-l-4 border-l-amber-400/50 leading-relaxed">
                 ⚠️ Your responses may come across as less engaged than intended.

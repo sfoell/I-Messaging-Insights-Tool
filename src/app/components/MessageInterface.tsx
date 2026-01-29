@@ -1,56 +1,13 @@
 import { Send } from "lucide-react";
 import { useState, useEffect } from "react";
-
-interface Message {
-  id: number;
-  text: string;
-  sender: "user" | "other";
-  timestamp: string;
-}
+import type { ChatMessage } from "@/app/App";
 
 interface MessageInterfaceProps {
   suggestedMessage?: string;
+  messages: ChatMessage[];
 }
 
-export function MessageInterface({ suggestedMessage }: MessageInterfaceProps) {
-  const [messages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Hey! Did you get a chance to review the proposal I sent over?",
-      sender: "other",
-      timestamp: "10:32 AM",
-    },
-    {
-      id: 2,
-      text: "Not yet, been swamped with other stuff. Will try to look at it later.",
-      sender: "user",
-      timestamp: "10:45 AM",
-    },
-    {
-      id: 3,
-      text: "No worries! Just wanted to check in. It would be great if you could give me feedback by end of day though.",
-      sender: "other",
-      timestamp: "10:47 AM",
-    },
-    {
-      id: 4,
-      text: "Yeah, I'll try.",
-      sender: "user",
-      timestamp: "10:48 AM",
-    },
-    {
-      id: 5,
-      text: "Thanks! I really appreciate it. Let me know if you have any questions.",
-      sender: "other",
-      timestamp: "10:49 AM",
-    },
-    {
-      id: 6,
-      text: "Sure thing.",
-      sender: "user",
-      timestamp: "10:50 AM",
-    },
-  ]);
+export function MessageInterface({ suggestedMessage, messages }: MessageInterfaceProps) {
 
   const [inputValue, setInputValue] = useState("");
 
