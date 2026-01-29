@@ -1,21 +1,35 @@
 import { Send } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ChatMessage } from "@/app/App";
 
 interface MessageInterfaceProps {
-  suggestedMessage?: string;
+  value: string;
+  onChange: (value: string) => void;
+  onSelectionChange?: (start: number, end: number) => void;
+  cursorAfterApply?: number | null;
+  onCursorApplied?: () => void;
   messages: ChatMessage[];
 }
 
-export function MessageInterface({ suggestedMessage, messages }: MessageInterfaceProps) {
-
-  const [inputValue, setInputValue] = useState("");
+export function MessageInterface({
+  value,
+  onChange,
+  onSelectionChange,
+  cursorAfterApply,
+  onCursorApplied,
+  messages,
+}: MessageInterfaceProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const onCursorAppliedRef = useRef(onCursorApplied);
+  onCursorAppliedRef.current = onCursorApplied;
 
   useEffect(() => {
-    if (suggestedMessage) {
-      setInputValue(suggestedMessage);
+    if (cursorAfterApply != null && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.setSelectionRange(cursorAfterApply, cursorAfterApply);
+      onCursorAppliedRef.current?.();
     }
-  }, [suggestedMessage]);
+  }, [cursorAfterApply]);
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
@@ -70,10 +84,19 @@ export function MessageInterface({ suggestedMessage, messages }: MessageInterfac
       <div className="backdrop-blur-xl bg-white/60 border-t border-white/20 px-6 py-5 shadow-lg">
         <div className="flex items-center gap-3">
           <input
+            ref={inputRef}
             type="text"
             placeholder="Type a message..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onSelect={(e) => {
+              const el = e.target as HTMLInputElement;
+              onSelectionChange?.(el.selectionStart ?? 0, el.selectionEnd ?? 0);
+            }}
+            onFocus={(e) => {
+              const el = e.target as HTMLInputElement;
+              onSelectionChange?.(el.selectionStart ?? 0, el.selectionEnd ?? 0);
+            }}
             className="flex-1 px-5 py-3 backdrop-blur-xl bg-white/80 border border-white/40 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent shadow-md transition-all duration-300 placeholder:text-gray-400"
           />
           <button className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center hover:shadow-xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg">

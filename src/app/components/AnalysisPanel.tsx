@@ -25,7 +25,9 @@ const yourToneExampleIds: Record<string, number[]> = {
 interface AnalysisPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  onApplyTone: (message: string) => void;
+  onApplyTone: (message: string, options?: { replaceSelection: { start: number; end: number } }) => void;
+  selection?: { start: number; end: number };
+  inputValue?: string;
   messages: ChatMessage[];
 }
 
@@ -150,7 +152,7 @@ const interactionConfigs = {
 
 type SidebarSection = "setup" | "insights" | "recommendations";
 
-export function AnalysisPanel({ isOpen, onClose, onApplyTone, messages }: AnalysisPanelProps) {
+export function AnalysisPanel({ isOpen, onClose, onApplyTone, selection, inputValue, messages }: AnalysisPanelProps) {
   const [selectedInteraction, setSelectedInteraction] = useState<InteractionType>("low-stakes-formal");
   const [selectedRole, setSelectedRole] = useState<InteractionType>("low-stakes-formal");
   const [activeSection, setActiveSection] = useState<SidebarSection>("setup");
@@ -181,7 +183,9 @@ export function AnalysisPanel({ isOpen, onClose, onApplyTone, messages }: Analys
   };
 
   const handleApplyRecommendedTone = () => {
-    onApplyTone(config.message);
+    const hasText = (inputValue ?? "").trim().length > 0;
+    if (!hasText) return;
+    onApplyTone(config.message, { replaceSelection: selection ?? { start: 0, end: 0 } });
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { MessageInterface } from "@/app/components/MessageInterface";
 import { AnalysisPanel } from "@/app/components/AnalysisPanel";
 import { Sparkles } from "lucide-react";
@@ -19,20 +19,60 @@ const initialMessages: ChatMessage[] = [
   { id: 6, text: "Sure thing.", sender: "user", timestamp: "10:50 AM" },
 ];
 
+export type InputSelection = { start: number; end: number };
+
 export default function App() {
   const [isPanelOpen, setIsPanelOpen] = useState(true);
-  const [suggestedMessage, setSuggestedMessage] = useState<string>("");
+  const [inputValue, setInputValue] = useState("");
+  const [selection, setSelection] = useState<InputSelection>({ start: 0, end: 0 });
+  const [cursorAfterApply, setCursorAfterApply] = useState<number | null>(null);
   const [messages] = useState<ChatMessage[]>(initialMessages);
+  const lastNonEmptySelectionRef = useRef<InputSelection>({ start: 0, end: 0 });
 
-  const handleApplyTone = (message: string) => {
-    setSuggestedMessage(message);
-  };
+  const handleSelectionChange = useCallback((start: number, end: number) => {
+    setSelection({ start, end });
+    if (end > start) {
+      lastNonEmptySelectionRef.current = { start, end };
+    }
+  }, []);
+
+  const handleApplyTone = useCallback(
+    (message: string, options?: { replaceSelection: InputSelection }) => {
+      const hasText = inputValue.trim().length > 0;
+      if (!hasText) return;
+
+      const fromOptions = options?.replaceSelection && options.replaceSelection.end > options.replaceSelection.start;
+      const fromRef = lastNonEmptySelectionRef.current.end > lastNonEmptySelectionRef.current.start;
+      const replaceSelection = fromOptions
+        ? options!.replaceSelection
+        : fromRef
+          ? lastNonEmptySelectionRef.current
+          : null;
+
+      if (!replaceSelection) return;
+
+      const { start, end } = replaceSelection;
+      const before = inputValue.slice(0, start);
+      const after = inputValue.slice(end);
+      const newText = before + message + after;
+      setInputValue(newText);
+      setCursorAfterApply(start + message.length);
+    },
+    [inputValue]
+  );
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50 to-purple-100">
       {/* Main messaging interface */}
       <div className="flex-1 relative">
-        <MessageInterface suggestedMessage={suggestedMessage} messages={messages} />
+        <MessageInterface
+          value={inputValue}
+          onChange={setInputValue}
+          onSelectionChange={handleSelectionChange}
+          cursorAfterApply={cursorAfterApply}
+          onCursorApplied={() => setCursorAfterApply(null)}
+          messages={messages}
+        />
         
         {/* Toggle Button */}
         <button
@@ -52,6 +92,8 @@ export default function App() {
         isOpen={isPanelOpen} 
         onClose={() => setIsPanelOpen(false)} 
         onApplyTone={handleApplyTone}
+        selection={selection}
+        inputValue={inputValue}
         messages={messages}
       />
     </div>
